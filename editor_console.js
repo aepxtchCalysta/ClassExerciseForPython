@@ -30,6 +30,14 @@ let console = (function (oldConsole) {
             if (typeof arg === "object" && !Array.isArray(arg)) return "object";
             if (typeof arg === "object" && Array.isArray(arg)) return "array";
         },
+        logSingleArgument: function (logItem) {
+            // Ensure single argument logging
+            oldConsole.log(logItem);
+            consoleMessages.push({
+                message: this.formatArgsOutput(logItem),
+                class: `log log--${this.getType(logItem)}`
+            });
+        },
         logMultipleArguments: function (arguments) {
             let currentLog = "";
 
@@ -44,21 +52,12 @@ let console = (function (oldConsole) {
                 message: currentLog,
                 class: `log log--default`
             });
-
-            oldConsole.log(consoleMessages);
         },
-        logSingleArgument: function (logItem) {
-            oldConsole.log(logItem);
-            consoleMessages.push({
-                message: this.formatArgsOutput(logItem),
-                class: `log log--${this.getType(logItem)}`
-            });
-
-            oldConsole.log(consoleMessages);
-        },
-        log: function (text) {
+        log: function () {
             let argsArray = Array.from(arguments);
-            return argsArray.length !== 1 ? this.logMultipleArguments(argsArray) : this.logSingleArgument(text);
+            return argsArray.length !== 1
+                ? this.logMultipleArguments(argsArray)
+                : this.logSingleArgument(argsArray[0]);
         },
         info: function (text) {
             oldConsole.info(text);
