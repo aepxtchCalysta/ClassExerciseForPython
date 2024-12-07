@@ -7,6 +7,10 @@ const resetCodeBtn = document.querySelector('.editor__reset');
 let codeEditor = ace.edit("editorCode");
 let defaultCode = 'print("Hello World!")';
 let consoleMessages = [];
+//Load Log from editor-console
+import logger from './editor_console.js';
+
+logger.printLogsToUI(logContainer);
 
 // Load Pyodide
 let pyodideReadyPromise = loadPyodide().then(async (pyodide) => {
