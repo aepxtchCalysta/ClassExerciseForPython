@@ -76,7 +76,7 @@ let editorLib = {
 executeCodeBtn.addEventListener('click', async () => {
     // Clear console messages
     editorLib.clearConsoleScreen();
-    
+
     // Get input from the code editor
     const userCode = codeEditor.getValue();
 
@@ -85,15 +85,14 @@ executeCodeBtn.addEventListener('click', async () => {
 
     // Run the user code using Pyodide
     try {
-        let result = await window.pyodide.runPythonAsync(userCode);
-        // In kết quả trả về nếu có
-        if (result !== undefined) {
-            add_to_console(result);
-        }
+        await consoleHandler.runPythonWithInput(pyodide, userCode);
     } catch (err) {
         console.error(err);
-        add_to_console(`${err.name}: ${err.message}`);
+        consoleMessages.push({ message: `${err.name}: ${err.message}`, class: 'log log--error' });
     }
+
+    // Print to the console
+    editorLib.printToConsole();
 });
 
 resetCodeBtn.addEventListener('click', () => {
