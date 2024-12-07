@@ -24,7 +24,7 @@ import sys
 class JSWriter:
     def write(self, message):
         # Gọi hàm JavaScript để thêm thông điệp vào console
-        js.console.log(message.strip())
+        window.console.log(message.strip())
 
     def flush(self):
         pass  # Không cần thiết
