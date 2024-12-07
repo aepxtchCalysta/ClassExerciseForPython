@@ -6,7 +6,6 @@ class EditorConsole {
       this.printToConsole();
     };
 
-    // Chỉnh sửa hàm này để nhập input trực tiếp từ console
     this.handleInput = (promptMessage) => {
       return new Promise((resolve) => {
         const inputField = document.createElement("input");
@@ -56,5 +55,6 @@ class EditorConsole {
     }
   }
 }
+
 // Đảm bảo khởi tạo và sử dụng đúng class này
 const consoleHandler = new EditorConsole();
