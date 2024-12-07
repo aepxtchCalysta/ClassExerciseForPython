@@ -55,6 +55,28 @@ class EditorConsole {
     }
   }
 }
+// Đảm bảo rằng đối tượng được xuất khẩu như là mặc định
+export default {
+  logSingleArgument(message) {
+    // Hàm này xử lý việc log một tham số duy nhất vào console
+    console.log(message);
+  },
 
+  log(message, type = 'log') {
+    // Hàm này xử lý việc log với loại khác nhau (log, error, info)
+    if (type === 'error') {
+      console.error(message);
+    } else if (type === 'info') {
+      console.info(message);
+    } else {
+      console.log(message);
+    }
+  },
+
+  clearConsole() {
+    // Hàm này xóa sạch console log
+    console.clear();
+  },
+};
 // Đảm bảo khởi tạo và sử dụng đúng class này
 const consoleHandler = new EditorConsole();
