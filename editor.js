@@ -1,9 +1,13 @@
-// Khởi tạo các biến cần thiết
+// editor.js
+
+import consoleHandler from './editor_console.js'; // Import đối tượng từ editor_console.js
+
+// Các phần tử cần thiết trong HTML
 const consoleLogList = document.querySelector('.editor__console-logs');
 const executeCodeBtn = document.querySelector('.editor__run');
 const resetCodeBtn = document.querySelector('.editor__reset');
 
-// Khởi tạo Ace Editor
+// Setup Ace
 let codeEditor = ace.edit("editorCode");
 let defaultCode = 'print("Hello World!")';
 let consoleMessages = [];
@@ -11,7 +15,7 @@ let consoleMessages = [];
 // Load Pyodide
 let pyodideReadyPromise = loadPyodide().then((pyodide) => {
     window.pyodide = pyodide; // Gán Pyodide vào window để sử dụng sau này
-    console.log("Pyodide is ready!");
+    consoleHandler.log('Pyodide is ready!'); // Log khi Pyodide sẵn sàng
 
     // Chuyển hướng stdout đến một hàm JavaScript
     window.pyodide.runPython(`
@@ -29,10 +33,10 @@ sys.stdout = JSWriter()
 `);
 });
 
-// Định nghĩa đối tượng editorLib để xử lý console
 let editorLib = {
     clearConsoleScreen() {
         consoleMessages.length = 0;
+
         // Remove all elements in the log list
         while (consoleLogList.firstChild) {
             consoleLogList.removeChild(consoleLogList.firstChild);
@@ -42,68 +46,66 @@ let editorLib = {
         consoleMessages.forEach(log => {
             const newLogItem = document.createElement('li');
             const newLogText = document.createElement('pre');
+
             newLogText.className = log.class;
             newLogText.textContent = `> ${log.message}`;
+
             newLogItem.appendChild(newLogText);
+
             consoleLogList.appendChild(newLogItem);
         });
     },
     init() {
-        // Thiết lập Ace Editor
+        // Configure Ace
+
+        // Theme
         codeEditor.setTheme("ace/theme/dreamweaver");
+
+        // Set language
         codeEditor.session.setMode("ace/mode/python");
+
+        // Set Options
         codeEditor.setOptions({
             fontFamily: 'Inconsolata',
             fontSize: '12pt',
             enableBasicAutocompletion: true,
             enableLiveAutocompletion: true,
         });
+
+        // Set Default Code
         codeEditor.setValue(defaultCode);
     }
-};
-
-// Hàm xử lý log cho console
-function consoleHandler(message) {
-    consoleMessages.push({
-        message: message,
-        class: 'log'
-    });
-    editorLib.printToConsole();  // Gọi lại hàm printToConsole khi có log mới
 }
 
-// Xử lý sự kiện khi bấm nút "Run"
+// Events
 executeCodeBtn.addEventListener('click', async () => {
-    // Xóa console trước khi chạy mã mới
+    // Clear console messages
     editorLib.clearConsoleScreen();
 
-    // Lấy mã người dùng nhập vào từ editor
+    // Get input from the code editor
     const userCode = codeEditor.getValue();
 
-    // Đảm bảo Pyodide đã sẵn sàng
+    // Ensure Pyodide is ready
     await pyodideReadyPromise;
 
-    // Chạy mã Python người dùng nhập vào
+    // Run the user code using Pyodide
     try {
+        // Run the Python code
         await window.pyodide.runPythonAsync(userCode);
     } catch (err) {
-        console.error(err);
-        consoleMessages.push({
-            message: `${err.name}: ${err.message}`,
-            class: 'log log--error'
-        });
+        consoleHandler.log(`${err.name}: ${err.message}`, 'error');
     }
 
-    // In kết quả vào console
+    // Print to the console
     editorLib.printToConsole();
 });
 
-// Xử lý sự kiện khi bấm nút "Reset"
 resetCodeBtn.addEventListener('click', () => {
-    // Khôi phục lại mã mặc định trong editor
+    // Clear ace editor
     codeEditor.setValue(defaultCode);
-    // Xóa console
-    editorLib.clearConsoleScreen();
-});
 
-// Khởi tạo editor
+    // Clear console messages
+    editorLib.clearConsoleScreen();
+})
+
 editorLib.init();
