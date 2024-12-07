@@ -20,11 +20,13 @@ let pyodideReadyPromise = loadPyodide().then((pyodide) => {
     // Chuyển hướng stdout đến một hàm JavaScript
     window.pyodide.runPython(`
 import sys
+import js
 
 class JSWriter:
     def write(self, message):
-        # Gọi hàm JavaScript để thêm thông điệp vào console
-        window.console.log(message.strip())
+        # Gọi hàm JavaScript từ Pyodide để in thông điệp vào console
+        import js
+        js.console.log(message.strip())  #Dùng js.console.log thay vì window.console.log
 
     def flush(self):
         pass  # Không cần thiết
