@@ -56,6 +56,5 @@ class EditorConsole {
     }
   }
 }
-
 // Đảm bảo khởi tạo và sử dụng đúng class này
 const consoleHandler = new EditorConsole();
