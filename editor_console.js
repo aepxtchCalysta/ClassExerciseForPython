@@ -1,76 +1,59 @@
-let console = (function (oldConsole) {
-    return {
-        formatArgsOutput: function(arg) { 
-            let outputArgMessage;
+class ConsoleLogger {
+    constructor() {
+        // Lưu danh sách các log
+        this.logs = [];
+    }
 
-            // Deal with different data types
-            switch (this.getType(arg)) {
-                case "string":
-                    outputArgMessage = `"${arg}"`;
-                    break;
-                case "object":
-                    outputArgMessage = `Object ${JSON.stringify(arg)}`;
-                    break;
-                case "array":
-                    outputArgMessage = `Array ${JSON.stringify(arg)}`;
-                    break;
-                default:
-                    outputArgMessage = arg;
-                    break;
-            }
-
-            return outputArgMessage;
-        },
-        getType: function (arg) {
-            if (typeof arg === "string") return "string";
-            if (typeof arg === "boolean") return "boolean";
-            if (typeof arg === "function") return "function";
-            if (typeof arg === "number") return "number";
-            if (typeof arg === "undefined") return "undefined";
-            if (typeof arg === "object" && !Array.isArray(arg)) return "object";
-            if (typeof arg === "object" && Array.isArray(arg)) return "array";
-        },
-        logSingleArgument: function (logItem) {
-            // Ensure single argument logging
-            oldConsole.log(logItem);
-            consoleMessages.push({
-                message: this.formatArgsOutput(logItem),
-                class: `log log--${this.getType(logItem)}`
-            });
-        },
-        logMultipleArguments: function (arguments) {
-            let currentLog = "";
-
-            // Deal with multiple arguments
-            arguments.forEach(arg => {
-                currentLog += this.formatArgsOutput(arg) + " ";
-            });
-
-            oldConsole.log.apply(oldConsole, arguments);
-
-            consoleMessages.push({
-                message: currentLog,
-                class: `log log--default`
-            });
-        },
-        log: function () {
-            let argsArray = Array.from(arguments);
-            return argsArray.length !== 1
-                ? this.logMultipleArguments(argsArray)
-                : this.logSingleArgument(argsArray[0]);
-        },
-        info: function (text) {
-            oldConsole.info(text);
-        },
-        warn: function (text) {
-            oldConsole.warn(text);
-        },
-        error: function (err) {
-            oldConsole.error(err);
-            consoleMessages.push({
-                message: `${err.name}: ${err.message}`,
-                class: "log log--error"
-            });
+    // Phương thức log đơn lẻ
+    logSingleArgument(argument) {
+        if (argument !== undefined) {
+            const message = argument.toString();
+            this.logs.push(message);
+            console.log(message); // Log ra DevTools Console
+        } else {
+            console.error("logSingleArgument called with undefined argument.");
         }
     }
-})(window.console);
+
+    // Phương thức log chính
+    log(...args) {
+        if (args.length === 1) {
+            this.logSingleArgument(args[0]); // Gọi logSingleArgument nếu có 1 tham số
+        } else if (args.length > 1) {
+            const combinedMessage = args.map(arg => arg.toString()).join(" ");
+            this.logs.push(combinedMessage);
+            console.log(combinedMessage); // Log ra DevTools Console
+        } else {
+            console.error("log called with no arguments.");
+        }
+    }
+
+    // Hiển thị logs trên UI
+    printLogsToUI(logContainerElement) {
+        logContainerElement.innerHTML = ""; // Xóa nội dung cũ
+
+        this.logs.forEach(log => {
+            const logItem = document.createElement("div");
+            logItem.textContent = log;
+            logItem.className = "console-log-item";
+            logContainerElement.appendChild(logItem);
+        });
+    }
+
+    // Xóa toàn bộ logs
+    clearLogs() {
+        this.logs = [];
+    }
+}
+
+// Khởi tạo ConsoleLogger
+const logger = new ConsoleLogger();
+
+// Định nghĩa global jsConsole để sử dụng với Pyodide
+window.jsConsole = {
+    log: (...args) => logger.log(...args), // Kết nối log
+    clear: () => logger.clearLogs(), // Kết nối clearLogs
+};
+
+// Xuất logger để sử dụng trong file khác nếu cần
+export default logger;
