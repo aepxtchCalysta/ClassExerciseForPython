@@ -14,27 +14,39 @@ let consoleMessages = [];
 
 // Load Pyodide
 let pyodideReadyPromise = loadPyodide().then((pyodide) => {
-    window.pyodide = pyodide; // Gán Pyodide vào window để sử dụng sau này
-    consoleHandler.log('Pyodide is ready!'); // Log khi Pyodide sẵn sàng
+    window.pyodide = pyodide;
+    consoleHandler.log('Pyodide is ready!');
 
-    // Chuyển hướng stdout đến một hàm JavaScript
+    // Chuyển hướng stdout đến khung console web
     window.pyodide.runPython(`
 import sys
 import js
 
-class JSWriter:
+class WebConsoleWriter:
     def write(self, message):
-        # Gọi hàm JavaScript từ Pyodide để in thông điệp vào console
-        import js
-        js.console.log(message.strip())  #Dùng js.console.log thay vì window.console.log
+        js.consoleHandler.log(message.strip())
 
     def flush(self):
         pass  # Không cần thiết
 
-sys.stdout = JSWriter()
+sys.stdout = WebConsoleWriter()
+sys.stderr = WebConsoleWriter()
 `);
 });
 
+document.getElementById('run-btn').addEventListener('click', async () => {
+    consoleHandler.clear(); // Xóa console trước khi chạy code mới
+
+    const code = document.getElementById('editorCode').value;
+
+    await pyodideReadyPromise;
+
+    try {
+        await window.pyodide.runPythonAsync(code);
+    } catch (err) {
+        consoleHandler.log(`Error: ${err.message}`);
+    }
+});
 let editorLib = {
     clearConsoleScreen() {
         consoleMessages.length = 0;
