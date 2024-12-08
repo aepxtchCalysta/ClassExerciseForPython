@@ -1,14 +1,14 @@
 import consoleHandler from './editor_console.js';
 
+// Gắn consoleHandler vào window để Pyodide sử dụng
+window.consoleHandler = consoleHandler;
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Các phần tử cần thiết trong HTML
-    const consoleLogList = document.getElementById('console-output');
     const executeCodeBtn = document.querySelector('.editor__run');
     const resetCodeBtn = document.querySelector('.editor__reset');
     const editorCodeDiv = document.getElementById('editorCode');
 
-    // Kiểm tra sự tồn tại của các phần tử HTML cần thiết
-    if (!consoleLogList || !executeCodeBtn || !resetCodeBtn || !editorCodeDiv) {
+    if (!executeCodeBtn || !resetCodeBtn || !editorCodeDiv) {
         console.error('Một hoặc nhiều phần tử HTML cần thiết không tồn tại!');
         return;
     }
@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeEditor = ace.edit("editorCode");
     const defaultCode = 'print("Hello World!")';
 
-    // Cấu hình Ace Editor
     codeEditor.setTheme("ace/theme/dreamweaver");
     codeEditor.session.setMode("ace/mode/python");
     codeEditor.setOptions({
@@ -26,19 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
         enableBasicAutocompletion: true,
         enableLiveAutocompletion: true,
     });
-
-    // Thiết lập code mặc định
     codeEditor.setValue(defaultCode);
 
-    // Biến để kiểm soát trạng thái của Pyodide
     let pyodideInstance = null;
 
-    // Load Pyodide
     const loadPyodideInstance = async () => {
         consoleHandler.log('Đang tải Pyodide...');
         pyodideInstance = await loadPyodide();
 
-        // Chuyển hướng stdout và stderr
         pyodideInstance.runPython(`
 import sys
 import js
@@ -56,12 +50,9 @@ sys.stderr = WebConsoleWriter()
         consoleHandler.log('Pyodide đã sẵn sàng!');
     };
 
-    // Khởi động Pyodide
     loadPyodideInstance();
 
-    // Sự kiện cho nút "Run"
     executeCodeBtn.addEventListener('click', async () => {
-        // Xóa console trước khi chạy code
         consoleHandler.clear();
 
         if (!pyodideInstance) {
@@ -69,20 +60,18 @@ sys.stderr = WebConsoleWriter()
             return;
         }
 
-        const userCode = codeEditor.getValue(); // Lấy mã người dùng từ Ace Editor
+        const userCode = codeEditor.getValue();
 
         try {
-            // Chạy mã Python của người dùng
             consoleHandler.log('Đang chạy mã...');
-            await consoleHandler.runPythonWithInput(pyodideInstance, userCode);
+            await pyodideInstance.runPythonAsync(userCode);
         } catch (err) {
             consoleHandler.log(`Error: ${err.message}`, 'error');
         }
     });
 
-    // Sự kiện cho nút "Reset"
     resetCodeBtn.addEventListener('click', () => {
-        codeEditor.setValue(defaultCode); // Reset mã trong Ace Editor
-        consoleHandler.clear(); // Xóa console
+        codeEditor.setValue(defaultCode);
+        consoleHandler.clear();
     });
 });
