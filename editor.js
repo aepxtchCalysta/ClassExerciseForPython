@@ -47,7 +47,12 @@ function add_to_console(message) {
 let editorLib = {
     clearConsoleScreen() {
         // Xóa các log cũ
-        const consoleLogList = document.querySelector('.editor__console-logs');
+        const consoleLogList = document.querySelector('console-output');
+
+         if (!consoleLogList) {
+        console.error('Phần tử console-output không tồn tại!');
+        return;
+        } 
         while (consoleLogList.firstChild) {
             consoleLogList.removeChild(consoleLogList.firstChild);
         }
