@@ -1,5 +1,3 @@
-// editor.js
-
 import consoleHandler from './editor_console.js'; // Import đối tượng từ editor_console.js
 
 // Các phần tử cần thiết trong HTML
@@ -7,17 +5,21 @@ const consoleLogList = document.querySelector('.editor__console-logs');
 const executeCodeBtn = document.querySelector('.editor__run');
 const resetCodeBtn = document.querySelector('.editor__reset');
 
+// Kiểm tra sự tồn tại của các phần tử HTML cần thiết
+if (!consoleLogList || !executeCodeBtn || !resetCodeBtn) {
+    console.error('Một hoặc nhiều phần tử HTML cần thiết không tồn tại!');
+}
+
 // Setup Ace
 let codeEditor = ace.edit("editorCode");
 let defaultCode = 'print("Hello World!")';
-let consoleMessages = [];
 
 // Load Pyodide
 let pyodideReadyPromise = loadPyodide().then((pyodide) => {
     window.pyodide = pyodide;
-    consoleHandler.log('Pyodide is ready!');
+    consoleHandler.log('Pyodide đã sẵn sàng!');
 
-    // Chuyển hướng stdout đến khung console web
+    // Chuyển hướng stdout và stderr đến custom console handler
     window.pyodide.runPython(`
 import sys
 import js
@@ -27,58 +29,26 @@ class WebConsoleWriter:
         js.consoleHandler.log(message.strip())
 
     def flush(self):
-        pass  # Không cần thiết
+        pass
 
 sys.stdout = WebConsoleWriter()
 sys.stderr = WebConsoleWriter()
 `);
 });
 
-document.getElementById('run-btn').addEventListener('click', async () => {
-    consoleHandler.clear(); // Xóa console trước khi chạy code mới
-
-    const code = document.getElementById('editorCode').value;
-
-    await pyodideReadyPromise;
-
-    try {
-        await window.pyodide.runPythonAsync(code);
-    } catch (err) {
-        consoleHandler.log(`Error: ${err.message}`);
-    }
-});
 let editorLib = {
     clearConsoleScreen() {
-        consoleMessages.length = 0;
-
-        // Remove all elements in the log list
-        while (consoleLogList.firstChild) {
-            consoleLogList.removeChild(consoleLogList.firstChild);
-        }
+        // Xóa sạch console logs
+        consoleHandler.clearConsole();
     },
     printToConsole() {
-        consoleMessages.forEach(log => {
-            const newLogItem = document.createElement('li');
-            const newLogText = document.createElement('pre');
-
-            newLogText.className = log.class;
-            newLogText.textContent = `> ${log.message}`;
-
-            newLogItem.appendChild(newLogText);
-
-            consoleLogList.appendChild(newLogItem);
-        });
+        // Gọi consoleHandler để in logs ra console
+        consoleHandler.printToConsole();
     },
     init() {
-        // Configure Ace
-
-        // Theme
+        // Configure Ace Editor
         codeEditor.setTheme("ace/theme/dreamweaver");
-
-        // Set language
         codeEditor.session.setMode("ace/mode/python");
-
-        // Set Options
         codeEditor.setOptions({
             fontFamily: 'Inconsolata',
             fontSize: '12pt',
@@ -86,40 +56,34 @@ let editorLib = {
             enableLiveAutocompletion: true,
         });
 
-        // Set Default Code
+        // Set default code
         codeEditor.setValue(defaultCode);
     }
-}
+};
 
-// Events
+// Sự kiện cho nút "Run"
 executeCodeBtn.addEventListener('click', async () => {
-    // Clear console messages
-    editorLib.clearConsoleScreen();
+    editorLib.clearConsoleScreen(); // Xóa console trước khi chạy code
 
-    // Get input from the code editor
-    const userCode = codeEditor.getValue();
+    const userCode = codeEditor.getValue(); // Lấy code từ Ace Editor
 
-    // Ensure Pyodide is ready
-    await pyodideReadyPromise;
+    await pyodideReadyPromise; // Đảm bảo Pyodide đã sẵn sàng
 
-    // Run the user code using Pyodide
     try {
-        // Run the Python code
-        await window.pyodide.runPythonAsync(userCode);
+        // Chạy mã Python
+        await consoleHandler.runPythonWithInput(window.pyodide, userCode);
     } catch (err) {
         consoleHandler.log(`${err.name}: ${err.message}`, 'error');
     }
 
-    // Print to the console
-    editorLib.printToConsole();
+    editorLib.printToConsole(); // Hiển thị output trên console
 });
 
+// Sự kiện cho nút "Reset"
 resetCodeBtn.addEventListener('click', () => {
-    // Clear ace editor
-    codeEditor.setValue(defaultCode);
+    codeEditor.setValue(defaultCode); // Reset Ace Editor
+    editorLib.clearConsoleScreen(); // Xóa console
+});
 
-    // Clear console messages
-    editorLib.clearConsoleScreen();
-})
-
+// Khởi tạo Editor
 editorLib.init();
