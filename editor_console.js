@@ -1,6 +1,6 @@
 let console = (function (oldConsole) {
     return {
-        formatArgsOutput: function(arg) { 
+        formatArgsOutput: function (arg) {
             let outputArgMessage;
 
             // Deal with different data types
@@ -30,15 +30,15 @@ let console = (function (oldConsole) {
             if (typeof arg === "object" && !Array.isArray(arg)) return "object";
             if (typeof arg === "object" && Array.isArray(arg)) return "array";
         },
-        logMultipleArguments: function (arguments) {
+        logMultipleArguments: function (args) {
             let currentLog = "";
 
             // Deal with multiple arguments
-            arguments.forEach(arg => {
+            args.forEach(arg => {
                 currentLog += this.formatArgsOutput(arg) + " ";
             });
 
-            oldConsole.log.apply(oldConsole, arguments);
+            oldConsole.log.apply(oldConsole, args);
 
             consoleMessages.push({
                 message: currentLog,
@@ -56,9 +56,8 @@ let console = (function (oldConsole) {
 
             oldConsole.log(consoleMessages);
         },
-        log: function (text) {
-            let argsArray = Array.from(arguments);
-            return argsArray.length !== 1 ? this.logMultipleArguments(argsArray) : this.logSingleArgument(text);
+        log: function (...args) {
+            return args.length !== 1 ? this.logMultipleArguments(args) : this.logSingleArgument(args[0]);
         },
         info: function (text) {
             oldConsole.info(text);
