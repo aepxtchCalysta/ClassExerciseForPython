@@ -24,7 +24,7 @@ html, body {
 
 /* Header */
 header {
-  background-color: #007bff;
+  background-image: linear-gradient(to right, #7fdeff, #dabfff, #e574bc);
   color: white;
   text-align: center;
   padding: 1rem;
