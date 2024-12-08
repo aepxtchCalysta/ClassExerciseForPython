@@ -118,7 +118,7 @@ main {
   background-color: darken(var(--primary-color), 10%);
 }
 
-.editor__console {
+.console {
   background-color: #ffffff;
   border: 1px solid var(--border-color);
   height: 150px;
@@ -126,7 +126,7 @@ main {
   padding: 10px;
 }
 
-.editor__console-logs {
+.console_output {
   list-style-type: none;
   padding: 0;
   margin: 0;
