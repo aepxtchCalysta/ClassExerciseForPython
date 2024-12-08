@@ -30,15 +30,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Thiết lập code mặc định
     codeEditor.setValue(defaultCode);
 
+    // Biến để kiểm soát trạng thái của Pyodide
+    let pyodideInstance = null;
+
     // Load Pyodide
-    let pyodideReadyPromise = loadPyodide().then((pyodide) => {
-        window.pyodide = pyodide;
+    const loadPyodideInstance = async () => {
+        consoleHandler.log('Đang tải Pyodide...');
+        pyodideInstance = await loadPyodide();
 
-        // Log trạng thái Pyodide
-        consoleHandler.log('Pyodide đã sẵn sàng!');
-
-        // Chuyển hướng stdout và stderr đến custom console handler
-        pyodide.runPython(`
+        // Chuyển hướng stdout và stderr
+        pyodideInstance.runPython(`
 import sys
 import js
 
@@ -52,20 +53,28 @@ class WebConsoleWriter:
 sys.stdout = WebConsoleWriter()
 sys.stderr = WebConsoleWriter()
 `);
-    });
+        consoleHandler.log('Pyodide đã sẵn sàng!');
+    };
+
+    // Khởi động Pyodide
+    loadPyodideInstance();
 
     // Sự kiện cho nút "Run"
     executeCodeBtn.addEventListener('click', async () => {
         // Xóa console trước khi chạy code
         consoleHandler.clear();
 
-        const userCode = codeEditor.getValue(); // Lấy mã người dùng từ Ace Editor
+        if (!pyodideInstance) {
+            consoleHandler.log('Pyodide chưa sẵn sàng. Vui lòng đợi và thử lại.', 'error');
+            return;
+        }
 
-        await pyodideReadyPromise; // Đảm bảo Pyodide đã sẵn sàng
+        const userCode = codeEditor.getValue(); // Lấy mã người dùng từ Ace Editor
 
         try {
             // Chạy mã Python của người dùng
-            await consoleHandler.runPythonWithInput(window.pyodide, userCode);
+            consoleHandler.log('Đang chạy mã...');
+            await consoleHandler.runPythonWithInput(pyodideInstance, userCode);
         } catch (err) {
             consoleHandler.log(`Error: ${err.message}`, 'error');
         }
