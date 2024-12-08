@@ -23,10 +23,8 @@ class EditorConsole {
   }
 
   printToConsole() {
-    // Xóa giao diện hiện tại
-    this.clear();
-
     // Hiển thị tất cả log
+    this.consoleLogList.innerHTML = ''; // Xóa các log cũ
     this.consoleLogs.forEach(log => {
       const logItem = document.createElement('li');
       logItem.textContent = log.message;
