@@ -1,70 +1,53 @@
 class EditorConsole {
-    constructor() {
-        this.consoleLogs = [];
+  constructor() {
+    this.consoleLogList = document.getElementById('console-output'); // Đảm bảo ID khớp với HTML
+    this.consoleLogs = [];
+  }
+
+  log(message, type = 'log') {
+    // Ghi log vào mảng
+    this.consoleLogs.push({ message, type });
+
+    // Cập nhật giao diện console
+    this.printToConsole();
+  }
+
+  clear() {
+    // Xóa mảng logs
+    this.consoleLogs = [];
+
+    // Xóa giao diện console
+    if (this.consoleLogList) {
+      this.consoleLogList.innerHTML = '';
     }
+  }
 
-    log(message) {
-        // Thêm log mới vào danh sách consoleLogs
-        this.consoleLogs.push({ message, class: 'log log--info' });
-        this.printToConsole();
+  printToConsole() {
+    // Xóa giao diện hiện tại
+    this.clear();
+
+    // Hiển thị tất cả log
+    this.consoleLogs.forEach(log => {
+      const logItem = document.createElement('li');
+      logItem.textContent = log.message;
+
+      // Đặt class dựa trên loại log
+      logItem.className = log.type === 'error' ? 'log-error' : 'log-info';
+
+      this.consoleLogList.appendChild(logItem);
+    });
+  }
+
+  async runPythonWithInput(pyodide, code) {
+    try {
+      await pyodide.runPythonAsync(code); // Chạy mã Python
+    } catch (err) {
+      // Log lỗi nếu xảy ra
+      this.log(`${err.name}: ${err.message}`, 'error');
     }
-
-    clearConsole() {
-        // Xóa tất cả log trong consoleLogs và trên giao diện
-        this.consoleLogs.length = 0;
-        const consoleLogList = document.querySelector('.editor__console-logs');
-        if (consoleLogList) {
-            consoleLogList.innerHTML = '';
-        }
-    }
-
-    printToConsole() {
-        // In tất cả logs trong consoleLogs ra giao diện
-        const consoleLogList = document.querySelector('.editor__console-logs');
-        if (!consoleLogList) return;
-
-        consoleLogList.innerHTML = '';
-        this.consoleLogs.forEach(log => {
-            const logItem = document.createElement('li');
-            const logText = document.createElement('pre');
-            logText.className = log.class;
-            logText.textContent = log.message;
-            logItem.appendChild(logText);
-            consoleLogList.appendChild(logItem);
-        });
-    }
-
-    async runPythonWithInput(pyodide, code) {
-        // Chuyển hướng input() đến hàm handleInput
-        window.input = async (promptMessage) => {
-            return new Promise((resolve) => {
-                const inputField = document.createElement('input');
-                inputField.placeholder = promptMessage;
-                inputField.style.margin = '10px';
-                inputField.style.padding = '5px';
-                inputField.style.fontSize = '16px';
-                document.body.appendChild(inputField);
-                inputField.focus();
-
-                inputField.addEventListener('keydown', (event) => {
-                    if (event.key === 'Enter') {
-                        resolve(inputField.value);
-                        document.body.removeChild(inputField);
-                    }
-                });
-            });
-        };
-
-        // Chạy mã Python với Pyodide
-        try {
-            await pyodide.runPythonAsync(code);
-        } catch (err) {
-            this.consoleLogs.push({ message: `${err.name}: ${err.message}`, class: 'log log--error' });
-            this.printToConsole();
-        }
-    }
+  }
 }
 
-// Khởi tạo đối tượng ConsoleHandler
+// Xuất một đối tượng duy nhất
 const consoleHandler = new EditorConsole();
 export default consoleHandler;
