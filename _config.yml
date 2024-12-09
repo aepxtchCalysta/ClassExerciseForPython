@@ -1,0 +1,15 @@
+title: "[Python] CLASS | Exercise"
+description: "Thực hành lập trình Python thông qua bài tập từ Group 9 và Group 10."
+url: "https://aepxtchcalysta.github.io"
+baseurl: "/ClassExerciseForPython"
+lang: "vi"
+timezone: "Asia/Ho_Chi_Minh"
+
+author:
+  name: "Group 9 and Group 10"
+  email: "euxcilia.quynhvo@gmail.com"
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
